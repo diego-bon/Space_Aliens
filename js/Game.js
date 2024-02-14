@@ -3,6 +3,7 @@ class Game extends Phaser.Scene {
         super("Game");
 
         this.score = 0;
+        this.missileFired = false;
     }
 
     preload() {
@@ -28,11 +29,16 @@ class Game extends Phaser.Scene {
         this.ship.setScale(0.6);
 
         this.scoreText = this.add.text(20, 20, 'Score: '+this.score.toString(), {font: '25px Arial', fill: '#fff'});
+
+        this.missileGroup = this.physics.add.group();
+
+        this.createAnimations();
     }
 
     update() {
         const keyLeft = this.input.keyboard.addKey('LEFT');
         const keyRight = this.input.keyboard.addKey('RIGHT');
+        const keySpace = this.input.keyboard.addKey('SPACE');
 
         if(keyLeft.isDown === true) {
             this.ship.setVelocityX(-300); 
@@ -41,5 +47,39 @@ class Game extends Phaser.Scene {
         } else {
             this.ship.setVelocityX(0);
         }
+
+        if(keySpace.isDown === true && this.missileFired === false) {
+            this.ship.anims.play('shipAttack');
+            this.fireMissile();
+            this.missileFired = true;
+        } else if(keySpace.isUp === true) {
+            this.missileFired = false;
+            this.ship.setTexture('ship'); 
+        }
+    }
+
+    
+    createAnimations() {
+        this.anims.create({
+            key: 'shipAttack',
+            frames: this.anims.generateFrameNumbers('shipAttack'),
+            frameRate: 30,
+            repeat: 1
+        
+        })
+
+        this.anims.create({
+            key: 'shipDestroyed',
+            frames: this.anims.generateFrameNumbers('shipDestroyed'),
+            frameRate: 10,
+            repeat: 0
+        })
+    }
+
+    fireMissile() {
+        const missile = this.physics.add.sprite(this.ship.x, this.ship.y - 50, 'missile');
+        this.missileGroup.add(missile);
+        missile.setVelocityY(-300);
+        this.sound.play('laser');
     }
 }
