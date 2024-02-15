@@ -90,7 +90,7 @@ class Game extends Phaser.Scene {
     }
 
     fireMissile() {
-        const missile = this.physics.add.sprite(this.ship.x, this.ship.y - 50, 'missile');
+        const missile = this.physics.add.image(this.ship.x, this.ship.y - 50, 'missile');
         this.missileGroup.add(missile);
         missile.setVelocityY(-300);
         this.sound.play('laser');
