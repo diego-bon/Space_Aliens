@@ -64,7 +64,7 @@ class Game extends Phaser.Scene {
             key: 'shipAttack',
             frames: this.anims.generateFrameNumbers('shipAttack'),
             frameRate: 30,
-            repeat: 1
+            repeat: 0
         
         })
 
