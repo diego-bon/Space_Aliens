@@ -4,6 +4,7 @@ class Game extends Phaser.Scene {
 
         this.score = 0;
         this.missileFired = false;
+        this.lastAlienTime = 0;
     }
 
     preload() {
@@ -31,11 +32,12 @@ class Game extends Phaser.Scene {
         this.scoreText = this.add.text(20, 20, 'Score: '+this.score.toString(), {font: '25px Arial', fill: '#fff'});
 
         this.missileGroup = this.physics.add.group();
+        this.alienGroup = this.physics.add.group();
 
         this.createAnimations();
     }
 
-    update() {
+    update(time) {
         const keyLeft = this.input.keyboard.addKey('LEFT');
         const keyRight = this.input.keyboard.addKey('RIGHT');
         const keySpace = this.input.keyboard.addKey('SPACE');
@@ -56,6 +58,13 @@ class Game extends Phaser.Scene {
             this.missileFired = false;
             this.ship.setTexture('ship'); 
         }
+
+        if(time > this.lastAlienTime + 2000) {
+            this.createAlien();
+            this.lastAlienTime = time;
+        }
+
+        this.checkCollisions();
     }
 
     
@@ -81,5 +90,33 @@ class Game extends Phaser.Scene {
         this.missileGroup.add(missile);
         missile.setVelocityY(-300);
         this.sound.play('laser');
+    }
+
+    createAlien() {
+        const alien = this.physics.add.image(Phaser.Math.Between(126, game.canvas.width-126), 50, 'alien');
+        this.alienGroup.add(alien);
+        alien.setCollideWorldBounds(true);
+        alien.setVelocityY(Phaser.Math.Between(50, 150));
+        alien.setVelocityX(Phaser.Math.Between(-80, 80));
+    }
+
+    checkCollisions() {
+        this.physics.collide(this.missileGroup, this.alienGroup, (missile, alien) => {
+            missile.destroy();
+            alien.destroy();
+            this.sound.play('explosion');
+            this.score += 10;
+            this.scoreText.setText('Score: '+this.score.toString());
+        });
+
+        this.physics.collide(this.ship, this.alienGroup, (ship, alien) => {
+            this.scene.pause();
+        });
+
+        this.alienGroup.children.each((alien) => {
+            if(alien.y > game.canvas.height - 30) {
+                this.scene.pause();
+            }
+        });
     }
 }
