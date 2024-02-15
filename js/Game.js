@@ -5,6 +5,7 @@ class Game extends Phaser.Scene {
         this.score = 0;
         this.missileFired = false;
         this.lastAlienTime = 0;
+        this.gameOver = false
     }
 
     preload() {
@@ -35,6 +36,9 @@ class Game extends Phaser.Scene {
         this.alienGroup = this.physics.add.group();
 
         this.createAnimations();
+
+        this.gameOverText = this.add.text(game.canvas.width / 2, game.canvas.height / 2, '', {font: '50px Arial', fill: '#fff'}).setOrigin(0.5);
+        this.gameOverText.visible = false;
     }
 
     update(time) {
@@ -54,7 +58,7 @@ class Game extends Phaser.Scene {
             this.ship.anims.play('shipAttack');
             this.fireMissile();
             this.missileFired = true;
-        } else if(keySpace.isUp === true) {
+        } else if(keySpace.isUp === true && this.gameOver === false) {
             this.missileFired = false;
             this.ship.setTexture('ship'); 
         }
@@ -110,13 +114,26 @@ class Game extends Phaser.Scene {
         });
 
         this.physics.collide(this.ship, this.alienGroup, (ship, alien) => {
-            this.scene.pause();
+            this.handleGameOver(alien);
         });
 
         this.alienGroup.children.each((alien) => {
             if(alien.y > game.canvas.height - 30) {
-                this.scene.pause();
+                this.handleGameOver(alien);
             }
         });
+    }
+
+    handleGameOver(alien) {
+        alien.destroy();
+        this.gameOver = true;
+        this.ship.anims.play('shipDestroyed');
+        this.physics.pause();
+        this.sound.play('shipExplosion');
+        this.ship.on('animationcomplete', () => {
+            this.scene.pause();
+            this.gameOverText.setText('Game Over \n Score: ' + this.score);
+            this.gameOverText.visible = true;
+        })
     }
 }
